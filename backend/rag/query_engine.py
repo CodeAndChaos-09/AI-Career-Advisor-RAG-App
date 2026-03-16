@@ -12,7 +12,7 @@ from transformers import pipeline
 
 
 # -----------------------------
-# Resolve correct project paths
+# Resolve Paths
 # -----------------------------
 
 CURRENT_DIR = os.path.dirname(__file__)
@@ -30,7 +30,7 @@ embedding_model = HuggingFaceEmbeddings(
 
 
 # -----------------------------
-# Load Vector Database
+# Load Vector Store
 # -----------------------------
 
 vectorstore = FAISS.load_local(
@@ -43,35 +43,33 @@ retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
 
 
 # -----------------------------
-# Load Local Language Model
+# Load LLM
 # -----------------------------
 
 generator = pipeline(
-    "text2text-generation",
+    "text-generation",
     model="google/flan-t5-base",
-    max_length=256
+    max_new_tokens=256
 )
 
 
 # -----------------------------
-# Main RAG Function
+# Main RAG Pipeline
 # -----------------------------
 
 def query_rag(question: str):
 
-    # Step 1: Rewrite the query
+    # Step 1: Rewrite Query
     rewritten_query = rewrite_query(question)
 
-    # Step 2: Retrieve documents
+    # Step 2: Retrieve Documents
     docs = retriever.get_relevant_documents(rewritten_query)
 
-    # Step 3: Rerank documents
+    # Step 3: Rerank Documents
     reranked_docs = rerank_documents(rewritten_query, docs)
 
-    # Step 4: Prepare context
     context = "\n".join([doc.page_content for doc in reranked_docs])
 
-    # Step 5: Build prompt
     prompt = f"""
 Use the following context to answer the question.
 
@@ -84,7 +82,6 @@ Question:
 Answer:
 """
 
-    # Step 6: Generate response
     result = generator(prompt)
 
     answer = result[0]["generated_text"]
