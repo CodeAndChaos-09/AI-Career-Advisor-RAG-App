@@ -11,8 +11,8 @@ class Question(BaseModel):
 
 
 @app.get("/")
-def home():
-    return {"message": "AI Career Advisor API is running"}
+def root():
+    return {"status": "running"}
 
 
 @app.post("/ask")
